@@ -11,7 +11,7 @@ class Sql_table_generator:
     # Possible tables: Name, Surname, Fullname, Email, Company, City, Region
     # only up to 100 recs :(
 
-    def create_table(self, tablename: str, list_of_colnames: [str], list_of_types: [str]) -> None:
+    def create_table(self, tablename: str, list_of_colnames: [str], list_of_types: [str]) -> str:
 
         """
         Function creates sql command to create new table with provided params.
@@ -20,18 +20,18 @@ class Sql_table_generator:
         :param list_of_types:  list of strings, containing types of columns to be created
         :return:
         """
+        assert len(list_of_colnames) == len(list_of_types), f' List of column names {len(list_of_colnames)} ' + \
+                                                            ' has different length than' + \
+                                                            f' list of types {len(list_of_types)}!'
         self.tablename = tablename
-        tablecode = f"CREATE TABLE {tablename}("
-        if len(list_of_colnames) != len(list_of_types):
-            raise Exception("List of column names has different length than list of types!")
 
-        for i in range(len(list_of_colnames)):
-            tablecode += f"{list_of_colnames[i]} {list_of_types[i]}, "
+        _template = "CREATE TABLE {tablename} (\n\t{rows}\n);"
 
-        # deleting last comma
-        tablecode = tablecode[:-2] + " );"
-        self.result += tablecode
-        # list of lists
+        list_of_rows = ["{col} {type}".format(col=col, type=type) for col, type in zip(list_of_colnames,list_of_types)]
+
+        query = _template.format(tablename=self.tablename, rows=',\n\t'.join(list_of_rows))
+
+        return query
 
     def create_inserts(self, values: [[]], amount: int = -1, shuffle=False) -> None:
         """
@@ -79,3 +79,6 @@ class Sql_table_generator:
 
         with open(newpath, "w") as target:
             target.write(self.result)
+
+
+
